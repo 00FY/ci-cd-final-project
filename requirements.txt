@@ -21,3 +21,6 @@ coverage==6.3.2
 
 # Utilities
 httpie==3.2.1
+
+# Legacy nose plugins require pkg_resources.
+setuptools==80.10.2

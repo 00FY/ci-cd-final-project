@@ -47,7 +47,7 @@ spec:
     - name: args
       description: Arguments to pass to nose
       type: string
-      default: "-v"
+      default: "-v --with-spec --with-coverage --cover-package=service"
   steps:
     - name: nosetests
       image: python:3.9-slim

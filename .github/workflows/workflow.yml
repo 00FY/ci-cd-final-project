@@ -1,37 +1,26 @@
----
 name: CI workflow
-
 on:
- push:
-   branches:
-     - main
- pull_request:
-   branches:
-     - main
-
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
 jobs:
   build:
-    name: build
     runs-on: ubuntu-latest
     container: python:3.9-slim
-
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
-      
+        uses: actions/checkout@v4
       - name: Install dependencies
-        # Note about --upgrade: Update pip to latest version if already installed.
-        # Always good practice to make sure latest version of pip
-        # is installed to minimize installation problems.
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-    
+          python -m pip install -r requirements.txt
       - name: Lint with flake8
         run: |
           flake8 service --count --select=E9,F63,F7,F82 --show-source --statistics
           flake8 service --count --max-complexity=10 --max-line-length=127 --statistics
-      
       - name: Run unit tests with nose
-        run: nosetests -v --with-spec --spec-color --with-coverage --cover-package=app
-...
+        run: nosetests -v --with-spec --spec-color --with-coverage --cover-package=service
