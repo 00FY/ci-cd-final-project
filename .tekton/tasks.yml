@@ -47,7 +47,7 @@ spec:
     - name: args
       description: Arguments to pass to nose
       type: string
-      default: "-v --with-spec --with-coverage --cover-package=service"
+      default: "-v"
   steps:
     - name: nosetests
       image: python:3.9-slim
@@ -58,4 +58,21 @@ spec:
         python -m pip install --upgrade pip wheel
         pip install -r requirements.txt
         nosetests $(params.args)
-...
+...---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: flake8
+spec:
+  workspaces:
+    - name: source
+  steps:
+    - name: lint
+      image: python:3.9-slim
+      workingDir: $(workspaces.source.path)
+      script: |
+        #!/bin/sh
+        set -eu
+        python -m pip install -r requirements.txt
+        flake8 service --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 service --count --max-complexity=10 --max-line-length=127 --statistics

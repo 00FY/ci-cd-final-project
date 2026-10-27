@@ -1,6 +1,8 @@
-# CI/CD Final Project: Hit Counter Service
+# CI/CD Tools and Practices Final Project Template
 
-Project name: CI/CD Final Project - Hit Counter Service.
+Project name: **ci-cd-final-project**
+
+Application: Hit Counter Service.
 
 This Flask REST API creates, reads, updates, lists, and deletes named hit counters.
 The application runs with Gunicorn on port 8000.
@@ -17,7 +19,10 @@ Workflow: `.github/workflows/workflow.yml`.
 
 ## Continuous delivery
 
-Tekton task definitions in `.tekton/tasks.yml` include cleanup and nose.
+Tekton task definitions in `.tekton/tasks.yml` include cleanup, nose, and flake8.
+`.tekton/pipeline.yml` connects these to the lab-provided git-clone, buildah,
+and openshift-client ClusterTasks. `.tekton/pvc.yml` requests 1Gi of storage.
+See `LAB-RUN.md` for the lab commands.
 The OpenShift pipeline uses cleanup, git-clone, flake8, nose, buildah, and deploy.
 OpenShift execution evidence must come from the actual course lab.
 

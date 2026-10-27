@@ -1,0 +1,84 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: ci-cd-final-project
+spec:
+  params:
+    - name: repo-url
+      type: string
+      default: https://github.com/00FY/ci-cd-final-project.git
+    - name: branch
+      type: string
+      default: main
+    - name: build-image
+      type: string
+    - name: app-name
+      type: string
+      default: ci-cd-final-project
+  workspaces:
+    - name: output
+  tasks:
+    - name: cleanup
+      taskRef:
+        name: cleanup
+      workspaces:
+        - name: source
+          workspace: output
+    - name: git-clone
+      runAfter: [cleanup]
+      taskRef:
+        name: git-clone
+        kind: ClusterTask
+      params:
+        - name: url
+          value: $(params.repo-url)
+        - name: revision
+          value: $(params.branch)
+        - name: deleteExisting
+          value: "true"
+      workspaces:
+        - name: output
+          workspace: output
+    - name: flake8
+      runAfter: [git-clone]
+      taskRef:
+        name: flake8
+      workspaces:
+        - name: source
+          workspace: output
+    - name: nose
+      runAfter: [flake8]
+      taskRef:
+        name: nose
+      params:
+        - name: args
+          value: -v --with-spec --spec-color --with-coverage --cover-package=service
+      workspaces:
+        - name: source
+          workspace: output
+    - name: buildah
+      runAfter: [nose]
+      taskRef:
+        name: buildah
+        kind: ClusterTask
+      params:
+        - name: IMAGE
+          value: $(params.build-image)
+        - name: STORAGE_DRIVER
+          value: vfs
+      workspaces:
+        - name: source
+          workspace: output
+    - name: deploy
+      runAfter: [buildah]
+      taskRef:
+        name: openshift-client
+        kind: ClusterTask
+      params:
+        - name: SCRIPT
+          value: |
+            set -eu
+            oc create deployment $(params.app-name) --image=$(params.build-image) --dry-run=client -o yaml | oc apply -f -
+            oc rollout restart deployment/$(params.app-name)
+            oc rollout status deployment/$(params.app-name) --timeout=180s
+            oc logs deployment/$(params.app-name) --tail=100
