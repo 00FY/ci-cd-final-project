@@ -66,6 +66,8 @@ spec:
           value: $(params.build-image)
         - name: STORAGE_DRIVER
           value: vfs
+        - name: BUILD_EXTRA_ARGS
+          value: --ulimit nproc=4096:4096 --ulimit nofile=4096:4096
       workspaces:
         - name: source
           workspace: output
